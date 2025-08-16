@@ -13,40 +13,40 @@ interface TimerId {
 interface Timer {
   id: TimerId;
   time: string; // format "HH:MM:SS"
-  state: "running" | "stopped" | "overran" | "overrunning";
+  state: "running" | "stopped" | "overran" | "overrunning" | "complete";
 }
 
 export default function TimerDashboard() {
   const [isDarkMode, setIsDarkMode] = useState(false);
-
+  const [error, setError] = useState<string | null>(null);
   const [timers, setTimers] = useState<Timer[]>([
-    {
-      id: {
-        uuid: "ad19b83b-ee4d-4cfe-9280-220cc9330262",
-        name: "Running Timer",
-        index: 0,
-      },
-      time: "00:00:01",
-      state: "running",
-    },
-    {
-      id: {
-        uuid: "bd29c94c-ff5e-5dge-0391-331dd0441373",
-        name: "Stopped Timer",
-        index: 1,
-      },
-      time: "01:23:45",
-      state: "stopped",
-    },
-    {
-      id: {
-        uuid: "ce30d05d-0060-6ehf-1402-442ee1552484",
-        name: "Overrun Timer",
-        index: 2,
-      },
-      time: "02:15:30",
-      state: "overrunning",
-    },
+    // {
+    //   id: {
+    //     uuid: "ad19b83b-ee4d-4cfe-9280-220cc9330262",
+    //     name: "Running Timer",
+    //     index: 0,
+    //   },
+    //   time: "00:00:01",
+    //   state: "running",
+    // },
+    // {
+    //   id: {
+    //     uuid: "bd29c94c-ff5e-5dge-0391-331dd0441373",
+    //     name: "Stopped Timer",
+    //     index: 1,
+    //   },
+    //   time: "01:23:45",
+    //   state: "stopped",
+    // },
+    // {
+    //   id: {
+    //     uuid: "ce30d05d-0060-6ehf-1402-442ee1552484",
+    //     name: "Overrun Timer",
+    //     index: 2,
+    //   },
+    //   time: "02:15:30",
+    //   state: "overrunning",
+    // },
   ]);
 
   useEffect(() => {
@@ -66,11 +66,13 @@ export default function TimerDashboard() {
         if (!res.ok) throw new Error("Failed to fetch");
         const data = await res.json();
         // console.log({ data });
+        setError(null);
         setTimers(data);
       } catch (err) {
-        console.error(err);
+        setError((err as Error).message);
+        // console.error(err);
       }
-    }, 1000);
+    }, 500);
 
     return () => clearInterval(interval);
   }, []);
@@ -111,7 +113,7 @@ export default function TimerDashboard() {
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-            Timer Dashboard
+            Timer GMS Lampung
           </h1>
           <button
             onClick={toggleDarkMode}
@@ -127,40 +129,75 @@ export default function TimerDashboard() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {timers.map((timer) => {
-            const styles = getStateStyles(timer.state);
-            if (timer.state === "overran" || timer.state === "stopped") return;
-            return (
-              <div
-                key={timer.id.uuid}
-                className={`${styles.bgColor} rounded-xl border-2 shadow-lg dark:shadow-2xl p-4 sm:p-6 transition-all duration-300`}
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3 sm:gap-0">
-                  <h2
-                    className={`text-lg sm:text-xl font-semibold ${styles.textColor} text-center sm:text-left`}
+          {error ? (
+            <div className="col-span-full flex flex-col items-center justify-center py-12">
+              <div className="bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-xl shadow-lg dark:shadow-2xl p-8 text-center max-w-md">
+                <div className="text-gray-400 dark:text-gray-500 mb-4">
+                  <svg
+                    className="w-16 h-16 mx-auto"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    {timer.id.name}
-                  </h2>
-                  <span
-                    className={`px-3 py-1 rounded-full text-sm font-medium ${styles.badgeColor} uppercase tracking-wide self-center sm:self-auto`}
-                  >
-                    {timer.state}
-                  </span>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
                 </div>
-
-                <div className="text-center mb-4">
-                  <div
-                    className={`text-4xl font-mono font-bold ${styles.textColor} tracking-wider transition-all duration-300 transform hover:scale-105`}
-                  >
-                    {timer.time}
-                  </div>
-                  <p className="text-gray-500 dark:text-gray-400 mt-2 text-xs">
-                    Hours : Minutes : Seconds
-                  </p>
-                </div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  ProPresenter is not connected!
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">
+                  Please wait or contact the Multimedia volunteer
+                </p>
               </div>
-            );
-          })}
+            </div>
+          ) : (
+            <>
+              {timers.map((timer) => {
+                const styles = getStateStyles(timer.state);
+                if (
+                  timer.state === "overran" ||
+                  timer.state === "stopped" ||
+                  timer.state === "complete"
+                )
+                  return;
+                return (
+                  <div
+                    key={timer.id.uuid}
+                    className={`${styles.bgColor} rounded-xl border-2 shadow-lg dark:shadow-2xl p-4 sm:p-6 transition-all duration-300`}
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3 sm:gap-0">
+                      <h2
+                        className={`text-lg sm:text-xl font-semibold ${styles.textColor} text-center sm:text-left`}
+                      >
+                        {timer.id.name}
+                      </h2>
+                      <span
+                        className={`px-3 py-1 rounded-full text-sm font-medium ${styles.badgeColor} uppercase tracking-wide self-center sm:self-auto`}
+                      >
+                        {timer.state}
+                      </span>
+                    </div>
+
+                    <div className="text-center mb-4">
+                      <div
+                        className={`text-4xl font-mono font-bold ${styles.textColor} tracking-wider transition-all duration-300 transform hover:scale-105`}
+                      >
+                        {timer.time}
+                      </div>
+                      <p className="text-gray-500 dark:text-gray-400 mt-2 text-xs">
+                        Hours : Minutes : Seconds
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </>
+          )}
         </div>
       </div>
     </div>
