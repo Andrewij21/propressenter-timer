@@ -19,35 +19,7 @@ interface Timer {
 export default function TimerDashboard() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [timers, setTimers] = useState<Timer[]>([
-    // {
-    //   id: {
-    //     uuid: "ad19b83b-ee4d-4cfe-9280-220cc9330262",
-    //     name: "Running Timer",
-    //     index: 0,
-    //   },
-    //   time: "00:00:01",
-    //   state: "running",
-    // },
-    // {
-    //   id: {
-    //     uuid: "bd29c94c-ff5e-5dge-0391-331dd0441373",
-    //     name: "Stopped Timer",
-    //     index: 1,
-    //   },
-    //   time: "01:23:45",
-    //   state: "stopped",
-    // },
-    // {
-    //   id: {
-    //     uuid: "ce30d05d-0060-6ehf-1402-442ee1552484",
-    //     name: "Overrun Timer",
-    //     index: 2,
-    //   },
-    //   time: "02:15:30",
-    //   state: "overrunning",
-    // },
-  ]);
+  const [timers, setTimers] = useState<Timer[]>([]);
 
   useEffect(() => {
     if (isDarkMode) {
@@ -80,10 +52,65 @@ export default function TimerDashboard() {
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
   };
+  const handleStartTimer = useCallback(async (timer: Timer) => {
+    try {
+      // Body sesuai contoh yang Anda berikan
+      const body = {
+        id: timer.id,
+        allows_overrun: true,
+        countdown: {
+          duration: 300,
+        },
+      };
 
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_PROPRESENTER_API_URL}/v1/timer/${timer.id.index}/start`,
+        {
+          method: "PUT", // Diubah ke PUT
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body), // Menambahkan body
+        }
+      );
+      if (!res.ok) throw new Error("Failed to start timer");
+    } catch (err) {
+      console.error("Error starting timer:", err);
+      setError((err as Error).message);
+    }
+  }, []);
+
+  const handleStopTimer = useCallback(async (timer: Timer) => {
+    try {
+      // Body untuk stop disamakan dengan body start sesuai dokumentasi
+      const body = {
+        id: timer.id,
+        allows_overrun: true,
+        countdown: {
+          duration: 300, // Nilai ini mungkin tidak relevan untuk stop, tapi kita ikuti format
+        },
+      };
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_PROPRESENTER_API_URL}/v1/timer/${timer.id.index}/stop`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body), // Mengirim body lengkap
+        }
+      );
+      if (!res.ok) throw new Error("Failed to stop timer");
+    } catch (err) {
+      console.error("Error stopping timer:", err);
+      setError((err as Error).message);
+    }
+  }, []);
   const getStateStyles = (state: string) => {
     switch (state) {
       case "running":
+      case "complete":
         return {
           bgColor:
             "bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800",
@@ -91,6 +118,7 @@ export default function TimerDashboard() {
           badgeColor: "bg-green-500 text-white",
         };
       case "overrunning":
+      case "overran":
         return {
           bgColor:
             "bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800",
@@ -98,6 +126,12 @@ export default function TimerDashboard() {
           badgeColor: "bg-red-500 text-white",
         };
       case "stopped":
+        return {
+          bgColor:
+            "bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800",
+          textColor: "text-amber-900 dark:text-amber-100",
+          badgeColor: "bg-amber-500 text-white",
+        };
       default:
         return {
           bgColor:
@@ -111,10 +145,10 @@ export default function TimerDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4 sm:p-6 transition-colors duration-300">
       <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+        <div className="flex items-center justify-end mb-6 sm:mb-8">
+          {/* <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
             Timer GMS Lampung
-          </h1>
+          </h1> */}
           <button
             onClick={toggleDarkMode}
             className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
@@ -159,12 +193,12 @@ export default function TimerDashboard() {
             <>
               {timers.map((timer) => {
                 const styles = getStateStyles(timer.state);
-                if (
-                  timer.state === "overran" ||
-                  timer.state === "stopped" ||
-                  timer.state === "complete"
-                )
-                  return;
+                // if (
+                //   timer.state === "overran" ||
+                //   timer.state === "stopped" ||
+                //   timer.state === "complete"
+                // )
+                //   return;
                 return (
                   <div
                     key={timer.id.uuid}
@@ -179,7 +213,7 @@ export default function TimerDashboard() {
                       <span
                         className={`px-3 py-1 rounded-full text-sm font-medium ${styles.badgeColor} uppercase tracking-wide self-center sm:self-auto`}
                       >
-                        {timer.state}
+                        {timer.state === "complete" ? "RUNNING" : timer.state}
                       </span>
                     </div>
 
@@ -192,6 +226,28 @@ export default function TimerDashboard() {
                       <p className="text-gray-500 dark:text-gray-400 mt-2 text-xs">
                         Hours : Minutes : Seconds
                       </p>
+                    </div>
+                    <div className="mt-6 flex justify-center gap-4">
+                      <button
+                        onClick={() => handleStartTimer(timer)} // Mengirim seluruh objek timer
+                        className="px-5 py-2 rounded-lg bg-green-500 text-white font-semibold hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        // disabled={
+                        // timer.state === "running"
+                        // timer.state === "overrunning" ||
+                        // timer.state === "overran"
+                        // }
+                      >
+                        Start
+                      </button>
+                      <button
+                        onClick={() => handleStopTimer(timer)} // Mengirim seluruh objek timer
+                        className="px-5 py-2 rounded-lg bg-amber-500 text-white font-semibold hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-opacity-75 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        // disabled={
+                        //   timer.state === "stopped" || timer.state === "overran"
+                        // }
+                      >
+                        Stop
+                      </button>
                     </div>
                   </div>
                 );
