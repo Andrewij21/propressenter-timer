@@ -7,15 +7,33 @@ interface TimerId {
   name: string;
   index: number;
 }
-
 interface Timer {
   id: TimerId;
   time: string; // format "HH:MM:SS"
   state: "running" | "stopped" | "overran" | "overrunning" | "complete";
+  allows_overrun: boolean;
 }
 
 const KNOWN_TIMERS = ["Countdown Ibadah", "PAW", "Khotbah", "Ministry Time"];
+const parseHMSToSeconds = (timeString: string): number => {
+  try {
+    const parts = timeString.split(":");
+    // Pastikan formatnya benar
+    if (parts.length !== 3) {
+      console.warn(`Format waktu salah: ${timeString}, pakai 300 detik.`);
+      return 300; // default 5 menit jika format salah
+    }
 
+    const hours = parseInt(parts[0], 10) || 0;
+    const minutes = parseInt(parts[1], 10) || 0;
+    const seconds = parseInt(parts[2], 10) || 0;
+
+    return hours * 3600 + minutes * 60 + seconds;
+  } catch (e) {
+    console.error("Gagal parse time:", e);
+    return 300; // default 5 menit jika ada error
+  }
+};
 const getDefaultVisibility = () => {
   const defaultState: Record<string, boolean> = {};
   KNOWN_TIMERS.forEach((name) => {
@@ -126,7 +144,7 @@ export default function TimerDashboard() {
       };
 
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_PROPRESENTER_API_URL}/v1/timer/${selectedTimer.id.index}`,
+        `${process.env.NEXT_PUBLIC_PROPRESENTER_API_URL}/v1/timer/${selectedTimer.id.index}/reset`,
         {
           method: "PUT",
           headers: {
@@ -145,12 +163,13 @@ export default function TimerDashboard() {
   }, [selectedTimer, newTime]);
 
   const handleStartTimer = useCallback(async (timer: Timer) => {
+    const durationInSeconds = parseHMSToSeconds(timer.time);
     try {
       const body = {
         id: timer.id,
         allows_overrun: true,
         countdown: {
-          duration: 300,
+          duration: durationInSeconds,
         },
       };
 
@@ -172,12 +191,13 @@ export default function TimerDashboard() {
   }, []);
 
   const handleStopTimer = useCallback(async (timer: Timer) => {
+    const durationInSeconds = parseHMSToSeconds(timer.time);
     try {
       const body = {
         id: timer.id,
         allows_overrun: true,
         countdown: {
-          duration: 300,
+          duration: durationInSeconds,
         },
       };
 
