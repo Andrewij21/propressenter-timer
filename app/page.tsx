@@ -370,7 +370,7 @@ export default function TimerDashboard() {
                       {/* Timer Display */}
                       <div className="text-center mb-8">
                         <div
-                          className={`text-6xl font-mono font-bold ${styles.textColor} tracking-wider transition-all duration-300 transform group-hover:scale-105 font-black`}
+                          className={`text-5xl xl:text-6xl font-mono font-bold ${styles.textColor} tracking-wider transition-all duration-300 transform group-hover:scale-105 font-black`}
                         >
                           {timer.time}
                         </div>
