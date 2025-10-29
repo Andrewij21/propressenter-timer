@@ -400,11 +400,11 @@ export default function TimerDashboard() {
             </>
           )}
         </div>
-        <footer className="text-center mt-10 mb-6">
+        {/* <footer className="text-center mt-10 mb-6">
           <p className="text-sm text-gray-400 dark:text-gray-500 transition-all hover:text-gray-600 dark:hover:text-gray-400">
             Dashboard by Andre
           </p>
-        </footer>
+        </footer> */}
       </div>
 
       {isModalOpen && selectedTimer && (
