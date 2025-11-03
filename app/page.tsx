@@ -137,9 +137,9 @@ export default function TimerDashboard() {
         allows_overrun: true,
         countdown: {
           duration:
-            Number.parseInt(newTime.hours) * 3600 +
-            Number.parseInt(newTime.minutes) * 60 +
-            Number.parseInt(newTime.seconds),
+            (Number.parseInt(newTime.hours) || 0) * 3600 +
+            (Number.parseInt(newTime.minutes) || 0) * 60 +
+            (Number.parseInt(newTime.seconds) || 0),
         },
       };
 
@@ -441,11 +441,11 @@ export default function TimerDashboard() {
             </>
           )}
         </div>
-        <footer className="text-center mt-10 mb-6">
+        {/* <footer className="text-center mt-10 mb-6">
           <p className="text-sm text-gray-400 dark:text-gray-500 transition-all hover:text-gray-600 dark:hover:text-gray-400">
             Dashboard by Andre
           </p>
-        </footer>
+        </footer> */}
       </div>
 
       {isModalOpen && selectedTimer && (
@@ -483,7 +483,8 @@ export default function TimerDashboard() {
                     onChange={(e) =>
                       setNewTime({
                         ...newTime,
-                        hours: e.target.value.padStart(2, "0"),
+                        // --- PERBAIKAN 1: Hapus padStart ---
+                        hours: e.target.value,
                       })
                     }
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-center font-semibold focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -503,7 +504,8 @@ export default function TimerDashboard() {
                     onChange={(e) =>
                       setNewTime({
                         ...newTime,
-                        minutes: e.target.value.padStart(2, "0"),
+                        // --- PERBAIKAN 2: Hapus padStart ---
+                        minutes: e.target.value,
                       })
                     }
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-center font-semibold focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -523,7 +525,8 @@ export default function TimerDashboard() {
                     onChange={(e) =>
                       setNewTime({
                         ...newTime,
-                        seconds: e.target.value.padStart(2, "0"),
+                        // --- PERBAIKAN 3: Hapus padStart ---
+                        seconds: e.target.value,
                       })
                     }
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-center font-semibold focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -536,8 +539,11 @@ export default function TimerDashboard() {
                 <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
                   Preview
                 </p>
+                {/* --- PERBAIKAN 4: Tambahkan padStart DI SINI --- */}
                 <p className="text-3xl font-mono font-bold text-gray-900 dark:text-white">
-                  {newTime.hours}:{newTime.minutes}:{newTime.seconds}
+                  {(newTime.hours || "0").padStart(2, "0")}:
+                  {(newTime.minutes || "0").padStart(2, "0")}:
+                  {(newTime.seconds || "0").padStart(2, "0")}
                 </p>
               </div>
             </div>
