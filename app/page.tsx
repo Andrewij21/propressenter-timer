@@ -217,6 +217,41 @@ export default function TimerDashboard() {
       setError((err as Error).message);
     }
   }, []);
+  const handleResetTimer = useCallback(async (timer: Timer) => {
+    const DEFAULT_RESET_TIMES: Record<string, number> = {
+      PAW: 1594,
+      Khotbah: 3000,
+      "Ministry Time": 600,
+    };
+
+    const timerName = timer.id.name;
+    const resetDuration = DEFAULT_RESET_TIMES[timerName] ?? 0; // Default ke 0 jika tidak ada di daftar
+
+    try {
+      const body = {
+        id: timer.id,
+        allows_overrun: true,
+        countdown: {
+          duration: resetDuration,
+        },
+      };
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_PROPRESENTER_API_URL}/v1/timer/${timer.id.index}/reset`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        }
+      );
+      if (!res.ok) throw new Error("Failed to reset timer");
+    } catch (err) {
+      console.error("Error resetting timer:", err);
+      setError((err as Error).message);
+    }
+  }, []);
 
   const getStateStyles = (state: string) => {
     switch (state) {
@@ -392,6 +427,12 @@ export default function TimerDashboard() {
                           className="flex-1 px-4 py-3 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold hover:from-amber-600 hover:to-orange-600 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all shadow-md hover:shadow-lg"
                         >
                           Stop
+                        </button>
+                        <button
+                          onClick={() => handleResetTimer(timer)}
+                          className="flex-1 px-4 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-semibold hover:from-blue-600 hover:to-indigo-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all shadow-md hover:shadow-lg"
+                        >
+                          Reset
                         </button>
                       </div>
                     </div>
